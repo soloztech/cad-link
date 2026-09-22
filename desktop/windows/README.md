@@ -59,7 +59,10 @@ cad-link://folder?path=<percent-encoded UNC path>
 ```
 
 Encode the complete UNC path with JavaScript `encodeURIComponent` or .NET
-`Uri.EscapeDataString`. Do not add extra parameters or a slash before `?path`.
+`Uri.EscapeDataString`. Do not add extra parameters or path segments. Both
+`cad-link://open?path=...` and `cad-link://open/?path=...` are accepted: Windows
+normalizes custom protocol links by adding the slash before the query. The same
+applies to `folder` links.
 The launcher decodes once, validates the request, then checks target attributes.
 
 | Action | Target | Behavior |

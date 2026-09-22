@@ -6,9 +6,11 @@
   in an isolated database with synthetic products and documents.
 - **5 standalone Python tests passed**; Python, XML, manifest asset paths and
   JavaScript syntax were checked.
-- Windows PowerShell 5.1 launcher suite: **68 checks passed**, including URI/query
+- Windows PowerShell 5.1 launcher suite: **71 checks passed**, including URI/query
   validation, root boundaries, traversal, file types and simulated reparse points.
 - Windows executable compilation and noninteractive rejection smoke passed.
+- The launcher accepts the single slash Windows inserts before the query when
+  dispatching a custom URL; other unexpected path segments remain rejected.
 - An isolated upgrade from 16.0.1.0.1 to 16.0.1.1.0 passed the same 33 Odoo tests;
   the new stored company setting remained disabled by default for existing companies.
 - Odoo tests cover role-filtered inline rows, retained download links, PDF preview

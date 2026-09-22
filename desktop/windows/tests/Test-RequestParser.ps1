@@ -71,6 +71,9 @@ foreach ($path in @(
 )) { Assert-Rejected (New-TestUri 'open' $path) }
 
 $valid = New-TestUri 'open' '\\fileserver.example\CAD$\document.ipt'
+Assert-Accepted ($valid.Replace('//open?', '//open/?')) '\\fileserver.example\CAD$\document.ipt'
+$folderUri = New-TestUri 'folder' '\\fileserver.example\CAD$\Items\000001'
+Assert-Accepted ($folderUri.Replace('//folder?', '//folder/?')) '\\fileserver.example\CAD$\Items\000001'
 foreach ($uri in @(
     ($valid + '&path=other'),
     ($valid + '&command=evil'),
@@ -80,7 +83,8 @@ foreach ($uri in @(
     ($valid + '%GG'),
     ($valid + '%'),
     ($valid.Replace('cad-link:', 'file:')),
-    ($valid.Replace('//open?', '//open/?')),
+    ($valid.Replace('//open?', '//open//?')),
+    ($valid.Replace('//open?', '//open/other?')),
     ($valid.Replace('//open?', '//execute?')),
     ($valid.Replace('//open?', '//user@open?')),
     ($valid.Replace('//open?', '//open:123?')),

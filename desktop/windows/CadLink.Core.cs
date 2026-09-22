@@ -22,7 +22,7 @@ namespace CadLink
     public static class RequestParser
     {
         private static readonly Regex UriPattern = new Regex(
-            @"\Acad-link://(open|folder)\?path=((?:[A-Za-z0-9._~!'()*-]|%[0-9A-Fa-f]{2})+)\z",
+            @"\Acad-link://(open|folder)/?\?path=((?:[A-Za-z0-9._~!'()*-]|%[0-9A-Fa-f]{2})+)\z",
             RegexOptions.CultureInvariant);
         private static readonly Regex ServerPattern = new Regex(
             @"\A[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\z",
