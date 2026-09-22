@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
+import errno
 import logging
 from urllib.parse import quote, urlencode
 
@@ -23,9 +24,16 @@ class CadDocuments(http.Controller):
         ).browse(product_id)
 
     def _error(self, error):
-        if isinstance(error, AccessError):
+        # SMB providers can raise plain OSError subclasses rather than Python's
+        # specific filesystem exceptions. Never expose their message to users.
+        provider_errno = error.errno if isinstance(error, OSError) else None
+        if isinstance(error, (AccessError, PermissionError)) or provider_errno in (
+            errno.EACCES, errno.EPERM,
+        ):
             raise Forbidden() from error
-        if isinstance(error, FileNotFoundError):
+        if isinstance(error, (FileNotFoundError, NotADirectoryError)) or provider_errno in (
+            errno.ENOENT, errno.ENOTDIR,
+        ):
             raise NotFound(_("The item folder or document does not exist.")) from error
         if isinstance(error, UserError):
             raise BadRequest(str(error)) from error
