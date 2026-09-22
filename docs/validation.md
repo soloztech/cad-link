@@ -22,9 +22,20 @@
   compilation against the Inventor 2024 API with a stub for the iLogic host.
   See its [validation scope](../desktop/inventor/README.md#supported-environment-and-current-validation).
 
-**A real Inventor export and after-save event are not covered by these results.**
-Validate one part and one assembly, native appearance/scale, resolved references,
-regeneration of an existing GLB and atomic replacement on the target SMB server.
+The local skill subsequently exported a real saved part with Inventor **2024.4**,
+then regenerated its GLB over SMB using atomic replacement. Both runs preserved
+the original IPT hash and left the existing document open. The resulting GLB
+contained an embedded texture and passed the authenticated Odoo preview endpoint.
+The browser loaded the real part, including its normal-map texture; its bounds
+were 0.06 × 0.15 × 2.2 metres. Rotation was checked through the embedded viewer.
+The pilot exposed an iLogic implicit-import conflict; the rule now qualifies its
+filesystem/environment types, with an optional compile check against a locally
+installed Inventor interop assembly. The skill helper also has **19 Windows tests**.
+
+**Assembly export and the after-save event remain unvalidated.** Validate those,
+native appearance/scale and resolved references on the target workstation before
+enabling global save-event bindings. The supplied skill supports manual export;
+installing it does not register those events.
 No native CAD file or customer model is included in the public test fixtures.
 
 ## Inline CAD tab and Windows launcher (16.0.1.1.0)

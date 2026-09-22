@@ -31,9 +31,15 @@ and this exporter are separate optional companions.
 - The complete rule also compiles against the Inventor 2024 interop assembly,
   using a stub only for the iLogic host context. That checks the referenced API
   types and VB syntax, without executing Inventor or redistributing its assembly.
-- **A real Inventor export and after-save event still require validation on the
-  target workstation.** Synthetic filesystem tests do not prove Inventor COM,
-  texture fidelity, exported scale, assembly visibility or SMB atomic replacement.
+- A real saved part was exported and regenerated over SMB with Inventor 2024.4,
+  preserving its native file hash. The Odoo browser loaded its embedded normal
+  texture and verified dimensions. See the [pilot validation](../../docs/validation.md).
+- **Assembly export and after-save events still require validation on the target
+  workstation.** Repeat the pilot for its appearances, representation and storage.
+
+For Codex on the engineering workstation, the optional
+[local export skill](skill/cad-link-export-glb/SKILL.md) provides an inspect-first
+PowerShell helper. Installing the skill does not register save events.
 
 ## Set up once on each workstation
 
