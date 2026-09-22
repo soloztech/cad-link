@@ -1,0 +1,167 @@
+# Translation of CAD-link for Brazilian Portuguese.
+# SPDX-License-Identifier: LGPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "CAD documents"
+msgstr "Documentos CAD"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Save the product before opening its CAD documents."
+msgstr "Salve o produto antes de abrir seus documentos CAD."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Open item folder"
+msgstr "Abrir pasta do item"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Refresh"
+msgstr "Atualizar"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Loading CAD documents…"
+msgstr "Carregando documentos CAD…"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Choose a product variant to see the files for its internal reference."
+msgstr "Escolha uma variante do produto para ver os arquivos de seu código."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Select variant"
+msgstr "Selecionar variante"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "CAD folder"
+msgstr "Pasta CAD"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Copy path"
+msgstr "Copiar caminho"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Network actions open the original files with CAD-link Desktop. Your Windows access permissions apply."
+msgstr "As ações na rede abrem os arquivos originais com o CAD-link Desktop. Valem suas permissões de acesso no Windows."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Copy the path to open it in Explorer. Direct network actions require CAD-link Desktop to be enabled."
+msgstr "Copie o caminho para abri-lo no Explorer. As ações diretas na rede precisam do CAD-link Desktop habilitado."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "No documents available for your access group in this item folder."
+msgstr "Não há documentos disponíveis para seu grupo de acesso na pasta deste item."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "File"
+msgstr "Arquivo"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Size"
+msgstr "Tamanho"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Actions"
+msgstr "Ações"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Open on network"
+msgstr "Abrir na rede"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "View PDF"
+msgstr "Visualizar PDF"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Show in folder"
+msgstr "Mostrar na pasta"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Download"
+msgstr "Baixar"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.js:0
+msgid "CAD documents could not be loaded."
+msgstr "Não foi possível carregar os documentos CAD."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.js:0
+msgid "Folder path copied."
+msgstr "Caminho da pasta copiado."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.js:0
+msgid "Select and copy the folder path shown above."
+msgstr "Selecione e copie o caminho da pasta exibido acima."
+
+#. module: cad_link
+#: model:ir.model.fields,field_description:cad_link.field_res_company__cad_desktop_enabled
+msgid "Enable CAD-link Desktop"
+msgstr "Habilitar CAD-link Desktop"
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "Access to CAD storage was denied."
+msgstr "O acesso ao armazenamento CAD foi negado."
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "The item folder does not exist."
+msgstr "A pasta do item não existe."
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "CAD storage is temporarily unavailable."
+msgstr "O armazenamento CAD está temporariamente indisponível."
+
+#. module: cad_link
+#: code:addons/cad_link/models/res_company.py:0
+msgid "Configure a Windows share before enabling CAD-link Desktop."
+msgstr "Configure um compartilhamento Windows antes de habilitar o CAD-link Desktop."

@@ -23,8 +23,10 @@ P-2200              →   Items/P-2200/
 - Company-specific storage configuration using OCA `fs_storage`.
 - A CAD tab on product and variant forms. Multiple variants require selecting
   the variant; a template is never assumed to have one shared item code.
-- On-demand listing of files directly inside an item folder.
+- File listing inside the CAD tab, loaded when the tab opens, with a refresh action.
 - Authenticated PDF viewing through the browser and file downloads.
+- Optional Windows desktop client to open originals on the network or show them
+  in Explorer; downloads remain available alongside these actions.
 - Separate access groups for PDF documents and CAD source files.
 - An optional UNC path that users can copy into Windows Explorer.
 - Internal reference validation, duplicate detection (including archived and
@@ -48,7 +50,13 @@ an embedded 3D viewer is a future milestone.
    Companies → CAD-link**. Company settings require administrative access.
 5. Grant a CAD-link group to an internal user who already has product access.
 6. Set a unique internal reference on a product variant, create its folder through
-   your engineering process, and use **CAD → Open CAD documents**.
+   your engineering process, and open the **CAD** tab.
+
+For direct network opening, install the optional [Windows desktop client](desktop/windows/README.md)
+on each workstation, explicitly allow the repository's UNC root, then enable
+**CAD-link Desktop** in the company configuration. A compatible CAD application
+and the Windows user's own network permissions are required. The client opens
+the shared original; **Download** still creates a separate local copy.
 
 Configuration is deliberately empty at installation. No service accounts,
 network mappings, production endpoints or user permissions are provisioned.

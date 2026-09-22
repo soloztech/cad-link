@@ -37,6 +37,7 @@ Company settings:
 | Items directory | `Items` | Relative to the configured storage root; may be empty |
 | Windows share | `\\fileserver\CAD$` | Optional UNC equivalent of that root |
 | Maximum file size | `50` MiB | Per-request read limit, configurable from 1 to 256 MiB |
+| Enable CAD-link Desktop | Off by default | Show direct network/Explorer actions; requires the optional Windows client |
 
 Use one folder per variant's **Internal Reference** (`product.product.default_code`).
 Codes remain strings, including leading zeros. Missing, ambiguous or duplicate
@@ -44,6 +45,27 @@ references fail with an explicit error instead of picking another product.
 Duplicates are checked across global products and products in the selected company,
 including archived records and case-insensitive matches for Windows compatibility.
 Global products resolve against the active company selected when opening CAD.
+
+## Inline list and opening originals
+
+Open the product's **CAD** tab to list the authorized files, then use **Refresh**
+after new exports are saved to the repository. PDF files provide **View PDF**;
+every permitted file retains **Download**. Unsaved product changes must be saved
+before reloading the list so paths resolve from the saved internal reference.
+
+To add **Open on network**, **Show in folder**, and **Open item folder**, install
+the [optional Windows client](../desktop/windows/README.md) under each intended
+Windows user with explicit allowed UNC roots. Configure the matching Windows
+share above, then enable CAD-link Desktop. The browser may ask permission to
+invoke the registered `cad-link` protocol. It cannot reliably detect whether the
+client or the appropriate CAD application is installed. Keep the copyable path
+available as a fallback.
+
+Network open invokes the application associated with the extension on that
+workstation. It does not install Inventor, change associations, copy assembly
+dependencies or create a local download. Opening a shared original is subject
+to the CAD application's file locks and existing references. Download remains
+a separate action that copies one file.
 
 The first alpha lists direct children only. Put exported PDFs next to the source
 files. Nested exports, revisions and alternate path templates are future work.

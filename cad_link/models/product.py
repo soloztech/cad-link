@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
+import errno
+import logging
 import os
 import posixpath
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 from ..paths import component, document_kind, item_directory, unc_directory
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductProduct(models.Model):
@@ -63,6 +67,58 @@ class ProductProduct(models.Model):
         return {
             "type": "ir.actions.act_url", "target": "new",
             "url": "/cad-link/product/%s?%s" % (self.id, urlencode({"company_id": company.id})),
+        }
+
+    def get_cad_documents(self):
+        """Return authorized rows and actions for the product's CAD tab.
+
+        Paths are derived entirely on the server from company configuration,
+        the validated product code and the filtered storage listing. This RPC
+        accepts neither a filename nor a caller-supplied filesystem path.
+        """
+        company, folder = self._cad_context()
+        try:
+            rows = self._cad_list_documents()
+        except AccessError:
+            raise
+        except OSError as error:
+            if isinstance(error, (PermissionError,)) or error.errno in (errno.EACCES, errno.EPERM):
+                raise AccessError(_("Access to CAD storage was denied.")) from None
+            if isinstance(error, (FileNotFoundError, NotADirectoryError)) or error.errno in (
+                errno.ENOENT, errno.ENOTDIR,
+            ):
+                raise UserError(_("The item folder does not exist.")) from None
+            _logger.warning("CAD listing failed (%s)", type(error).__name__)
+            raise UserError(_("CAD storage is temporarily unavailable.")) from None
+        except UserError:
+            raise
+        except Exception as error:
+            # Provider errors can embed credentials. Never serialize them into
+            # the browser RPC error or log their contents/traceback.
+            _logger.warning("CAD listing failed (%s)", type(error).__name__)
+            raise UserError(_("CAD storage is temporarily unavailable.")) from None
+        folder_path = unc_directory(company.cad_unc_root or "", folder)
+        desktop_enabled = bool(company.cad_desktop_enabled and folder_path)
+        query = urlencode({"company_id": company.id})
+        for row in rows:
+            row["url"] = "/cad-link/product/%s/file/%s?%s" % (
+                self.id, quote(row["name"], safe=""), query,
+            )
+            row["download_url"] = row["url"] + "&download=1"
+            row["open_url"] = False
+            row["folder_url"] = False
+            if desktop_enabled:
+                file_path = unc_directory(company.cad_unc_root, posixpath.join(folder, row["name"]))
+                row["open_url"] = "cad-link://open?path=" + quote(file_path, safe="")
+                row["folder_url"] = "cad-link://folder?path=" + quote(file_path, safe="")
+        return {
+            "product_id": self.id,
+            "company_id": company.id,
+            "folder_path": folder_path,
+            "desktop_enabled": desktop_enabled,
+            "folder_url": "cad-link://folder?path=" + quote(folder_path, safe="") if desktop_enabled else False,
+            "documents": rows,
+            "select_variant": False,
         }
 
     def _cad_filesystem(self, company):
@@ -142,6 +198,21 @@ class ProductProduct(models.Model):
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
+
+    def get_cad_documents(self):
+        self.ensure_one()
+        if not self.env.user.has_group("cad_link.group_cad_documents"):
+            raise AccessError(_("CAD document access is required."))
+        self.check_access_rights("read")
+        self.check_access_rule("read")
+        if not self.exists():
+            raise UserError(_("Product not found."))
+        if self.company_id and self.company_id not in self.env.companies:
+            raise AccessError(_("The product company is not allowed."))
+        variants = self.with_context(active_test=False).product_variant_ids
+        if len(variants) == 1:
+            return variants.get_cad_documents()
+        return {"select_variant": True, "documents": []}
 
     def action_open_cad_documents(self):
         self.ensure_one()

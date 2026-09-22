@@ -8,6 +8,8 @@
 - [x] PDF / source groups, company boundaries and product access checks.
 - [x] UNC copy field, path validation and bounded reads.
 - [x] Standalone tests and Odoo ORM / HTTP tests.
+- [x] Inline CAD tab listing with PDF viewing and retained download actions.
+- [x] Optional Windows client to open shared originals and show files in Explorer.
 - [ ] Validate with different organizations and SMB server implementations.
 - [ ] Complete interface translations and publish a tagged release.
 

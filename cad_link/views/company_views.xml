@@ -11,6 +11,7 @@
                         <field name="cad_storage_id" options="{'no_create': True}"/>
                         <field name="cad_items_directory" placeholder="Items"/>
                         <field name="cad_unc_root" placeholder="\\fileserver\CAD$"/>
+                        <field name="cad_desktop_enabled"/>
                         <field name="cad_max_file_mb"/>
                     </group>
                     <p>Each product variant uses its internal reference as the folder name. Configure read-only storage credentials and grant CAD-link access on users.</p>

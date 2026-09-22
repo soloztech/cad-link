@@ -15,4 +15,7 @@ for path in xml_files:
 manifest = ast.literal_eval(root.joinpath("cad_link/__manifest__.py").read_text())
 for path in manifest["data"]:
     assert root.joinpath("cad_link", path).is_file(), path
+for paths in manifest.get("assets", {}).values():
+    for path in paths:
+        assert root.joinpath(path).is_file(), path
 print(f"Checked {len(python_files)} Python files, {len(xml_files)} XML files and manifest paths.")
