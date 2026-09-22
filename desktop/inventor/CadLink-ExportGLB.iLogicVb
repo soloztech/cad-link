@@ -19,8 +19,8 @@ Class ThisRule
                     Return
                 End If
             End If
-            Dim configuration As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor", "export.xml")
-            If Not File.Exists(configuration) Then
+            Dim configuration As String = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor", "export.xml")
+            If Not System.IO.File.Exists(configuration) Then
                 Report("Configure " & configuration & " before exporting.")
                 Return
             End If
@@ -43,16 +43,16 @@ Class ThisRule
             If document Is Nothing Then Return
             If document.DocumentType <> Inventor.DocumentTypeEnum.kPartDocumentObject AndAlso document.DocumentType <> Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then Return
             If String.IsNullOrWhiteSpace(document.FullFileName) Then Return
-            sourceLabel = Path.GetFileName(document.FullFileName)
+            sourceLabel = System.IO.Path.GetFileName(document.FullFileName)
             Dim source As String = CadLinkExportFiles.EligibleSource(ConfigValue(root, "ItemsRoot"), document.FullFileName)
             If source Is Nothing Then Return
-            Dim output As String = Path.ChangeExtension(source, ".glb")
+            Dim output As String = System.IO.Path.ChangeExtension(source, ".glb")
             Dim limit As Long = Long.Parse(ConfigValue(root, "MaxFileBytes"), Globalization.CultureInfo.InvariantCulture)
             If limit < 1024 OrElse limit > 268435456 Then Throw New InvalidOperationException("MaxFileBytes must be between 1024 and 268435456.")
 
             ' Exclusive SMB handle also prevents a reentrant event or another PC
             ' publishing the same item concurrently. It is removed on close.
-            Using exportLock As New FileStream(Path.Combine(Path.GetDirectoryName(source), ".cad-link-export.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose)
+            Using exportLock As New FileStream(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source), ".cad-link-export.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, System.IO.FileOptions.DeleteOnClose)
                 Dim before As Dictionary(Of String, String) = Snapshot(document)
                 Dim translator As Inventor.TranslatorAddIn = SelectedTranslator(ConfigValue(root, "TranslatorClassId"))
                 If Not translator.Activated Then translator.Activate()
@@ -61,9 +61,9 @@ Class ThisRule
                 Dim options As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
                 ' Populates native defaults when available. No invented GLB keys.
                 Dim hasOptions As Boolean = translator.HasSaveCopyAsOptions(document, context, options)
-                temporaryDirectory = Path.Combine(Path.GetDirectoryName(source), ".cad-link-export-" & Guid.NewGuid().ToString("N"))
-                Directory.CreateDirectory(temporaryDirectory)
-                Dim temporaryGlb As String = Path.Combine(temporaryDirectory, Path.GetFileName(output))
+                temporaryDirectory = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source), ".cad-link-export-" & Guid.NewGuid().ToString("N"))
+                System.IO.Directory.CreateDirectory(temporaryDirectory)
+                Dim temporaryGlb As String = System.IO.Path.Combine(temporaryDirectory, System.IO.Path.GetFileName(output))
                 Dim medium As Inventor.DataMedium = ThisApplication.TransientObjects.CreateDataMedium()
                 medium.FileName = temporaryGlb
                 translator.SaveCopyAs(document, context, options, medium)
@@ -78,10 +78,10 @@ Class ThisRule
             ' original save. Preserve the previous GLB and report locally.
             Report(sourceLabel & ": GLB not updated. " & ex.Message)
         Finally
-            If temporaryDirectory IsNot Nothing AndAlso Directory.Exists(temporaryDirectory) Then
+            If temporaryDirectory IsNot Nothing AndAlso System.IO.Directory.Exists(temporaryDirectory) Then
                 Try
                     ' Only our random staging directory, never the item folder.
-                    Directory.Delete(temporaryDirectory, True)
+                    System.IO.Directory.Delete(temporaryDirectory, True)
                 Catch
                     Report("Temporary export files could not be removed: " & temporaryDirectory)
                 End Try
@@ -124,7 +124,7 @@ Class ThisRule
     End Function
 
     Private Sub InspectTranslators()
-        Dim lines As New StringBuilder("CAD-link: export disabled. Installed glTF export translators:" & Environment.NewLine)
+        Dim lines As New StringBuilder("CAD-link: export disabled. Installed glTF export translators:" & System.Environment.NewLine)
         Dim count As Integer = 0
         For Each addin As Inventor.ApplicationAddIn In ThisApplication.ApplicationAddIns
             Dim translator As Inventor.TranslatorAddIn = TryCast(addin, Inventor.TranslatorAddIn)
@@ -155,21 +155,21 @@ Class ThisRule
 
     Private Sub AddSnapshot(ByVal document As Inventor.Document, ByVal result As Dictionary(Of String, String))
         If document.Dirty OrElse document.RequiresUpdate Then Throw New InvalidOperationException("Save and update the document and its components before exporting.")
-        If String.IsNullOrWhiteSpace(document.FullFileName) OrElse Not File.Exists(document.FullFileName) Then Throw New InvalidOperationException("An unsaved or unresolved document prevents export.")
+        If String.IsNullOrWhiteSpace(document.FullFileName) OrElse Not System.IO.File.Exists(document.FullFileName) Then Throw New InvalidOperationException("An unsaved or unresolved document prevents export.")
         For Each descriptor As Inventor.DocumentDescriptor In document.ReferencedDocumentDescriptors
             If descriptor.ReferenceMissing AndAlso Not descriptor.ReferenceSuppressed Then Throw New InvalidOperationException("An unresolved component prevents export.")
         Next
-        result(Path.GetFullPath(document.FullFileName)) = CadLinkExportFiles.Fingerprint(document.FullFileName)
+        result(System.IO.Path.GetFullPath(document.FullFileName)) = CadLinkExportFiles.Fingerprint(document.FullFileName)
     End Sub
 
     Private Sub Report(ByVal message As String)
         Try
-            ThisApplication.StatusBarText = "CAD-link: " & message.Replace(Environment.NewLine, " ")
-            Dim folder As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor")
-            Directory.CreateDirectory(folder)
-            Dim filename As String = Path.Combine(folder, "export.log")
-            If File.Exists(filename) AndAlso New FileInfo(filename).Length > 1048576 Then File.Delete(filename)
-            File.AppendAllText(filename, DateTime.UtcNow.ToString("o", Globalization.CultureInfo.InvariantCulture) & " " & message & Environment.NewLine, Encoding.UTF8)
+            ThisApplication.StatusBarText = "CAD-link: " & message.Replace(System.Environment.NewLine, " ")
+            Dim folder As String = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor")
+            System.IO.Directory.CreateDirectory(folder)
+            Dim filename As String = System.IO.Path.Combine(folder, "export.log")
+            If System.IO.File.Exists(filename) AndAlso New FileInfo(filename).Length > 1048576 Then System.IO.File.Delete(filename)
+            System.IO.File.AppendAllText(filename, DateTime.UtcNow.ToString("o", Globalization.CultureInfo.InvariantCulture) & " " & message & System.Environment.NewLine, Encoding.UTF8)
         Catch
             ' Logging must not interfere with Inventor saving the native file.
         End Try
@@ -179,27 +179,27 @@ End Class
 ' FILESYSTEM_HELPER_START: compiled independently by the synthetic Windows tests.
 Public Class CadLinkExportFiles
     Public Shared Function EligibleSource(ByVal itemsRoot As String, ByVal filename As String) As String
-        If String.IsNullOrWhiteSpace(itemsRoot) OrElse Not Path.IsPathRooted(itemsRoot) Then Throw New InvalidOperationException("Configure an absolute ItemsRoot first.")
+        If String.IsNullOrWhiteSpace(itemsRoot) OrElse Not System.IO.Path.IsPathRooted(itemsRoot) Then Throw New InvalidOperationException("Configure an absolute ItemsRoot first.")
         If itemsRoot.StartsWith("\\?\") OrElse itemsRoot.StartsWith("\\.\") Then Throw New InvalidOperationException("Device paths are not supported.")
-        Dim root As String = Path.GetFullPath(itemsRoot).TrimEnd(Path.DirectorySeparatorChar)
-        Dim source As String = Path.GetFullPath(filename)
-        Dim extension As String = Path.GetExtension(source).ToLowerInvariant()
+        Dim root As String = System.IO.Path.GetFullPath(itemsRoot).TrimEnd(System.IO.Path.DirectorySeparatorChar)
+        Dim source As String = System.IO.Path.GetFullPath(filename)
+        Dim extension As String = System.IO.Path.GetExtension(source).ToLowerInvariant()
         If extension <> ".ipt" AndAlso extension <> ".iam" Then Return Nothing
-        Dim folder As String = Path.GetDirectoryName(source)
-        If Not String.Equals(Path.GetDirectoryName(folder), root, StringComparison.OrdinalIgnoreCase) Then Return Nothing
-        If Not String.Equals(Path.GetFileName(folder), Path.GetFileNameWithoutExtension(source), StringComparison.OrdinalIgnoreCase) Then Return Nothing
-        If Not File.Exists(source) Then Return Nothing
+        Dim folder As String = System.IO.Path.GetDirectoryName(source)
+        If Not String.Equals(System.IO.Path.GetDirectoryName(folder), root, StringComparison.OrdinalIgnoreCase) Then Return Nothing
+        If Not String.Equals(System.IO.Path.GetFileName(folder), System.IO.Path.GetFileNameWithoutExtension(source), StringComparison.OrdinalIgnoreCase) Then Return Nothing
+        If Not System.IO.File.Exists(source) Then Return Nothing
         RejectReparsePoints(source)
         Dim otherExtension As String = If(extension = ".ipt", ".iam", ".ipt")
-        If File.Exists(Path.ChangeExtension(source, otherExtension)) Then Throw New InvalidOperationException("Both IPT and IAM share this basename; choose separate item codes before exporting.")
+        If System.IO.File.Exists(System.IO.Path.ChangeExtension(source, otherExtension)) Then Throw New InvalidOperationException("Both IPT and IAM share this basename; choose separate item codes before exporting.")
         Return source
     End Function
 
     Public Shared Sub RejectReparsePoints(ByVal filename As String)
-        Dim current As String = Path.GetFullPath(filename)
+        Dim current As String = System.IO.Path.GetFullPath(filename)
         While Not String.IsNullOrEmpty(current)
-            If (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then Throw New InvalidOperationException("Reparse points are not supported in export paths.")
-            current = Path.GetDirectoryName(current)
+            If (System.IO.File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then Throw New InvalidOperationException("Reparse points are not supported in export paths.")
+            current = System.IO.Path.GetDirectoryName(current)
         End While
     End Sub
 
@@ -228,16 +228,16 @@ Public Class CadLinkExportFiles
     End Sub
 
     Public Shared Sub Publish(ByVal temporary As String, ByVal destination As String, ByVal maximum As Long)
-        If Not Path.GetExtension(destination).Equals(".glb", StringComparison.OrdinalIgnoreCase) Then Throw New InvalidOperationException("Only derived GLB output may be replaced.")
+        If Not System.IO.Path.GetExtension(destination).Equals(".glb", StringComparison.OrdinalIgnoreCase) Then Throw New InvalidOperationException("Only derived GLB output may be replaced.")
         ValidateGlb(temporary, maximum)
         RejectReparsePoints(temporary)
-        If File.Exists(destination) Then
+        If System.IO.File.Exists(destination) Then
             RejectReparsePoints(destination)
             ' No delete/copy fallback: if atomic replacement is unsupported or a
             ' viewer holds an incompatible lock, the last valid export remains.
-            File.Replace(temporary, destination, Nothing)
+            System.IO.File.Replace(temporary, destination, Nothing)
         Else
-            File.Move(temporary, destination)
+            System.IO.File.Move(temporary, destination)
         End If
     End Sub
 End Class
