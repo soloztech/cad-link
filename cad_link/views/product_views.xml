@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_form_cad" model="ir.ui.view">
+        <field name="name">product.product.form.cad.link</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="CAD" groups="cad_link.group_cad_documents">
+                    <group><field name="cad_folder_path" readonly="1" widget="CopyClipboardChar"/></group>
+                    <button name="action_open_cad_documents" type="object" string="Open CAD documents" class="oe_highlight"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_template_form_cad" model="ir.ui.view">
+        <field name="name">product.template.form.cad.link</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="CAD" groups="cad_link.group_cad_documents">
+                    <p>Documents belong to each variant's internal reference. Products with multiple variants open a variant selection.</p>
+                    <button name="action_open_cad_documents" type="object" string="Open CAD documents" class="oe_highlight"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="document_list" name="CAD documents">
+        <t t-call="web.layout">
+            <t t-set="head"><t t-call-assets="web.assets_frontend" t-js="false"/></t>
+            <main class="container py-4">
+                <a t-att-href="'/web#id=%s&amp;model=product.product&amp;view_type=form' % product.id">Back to product</a>
+                <h1 class="mt-3">CAD documents</h1>
+                <p><strong t-esc="product.display_name"/></p>
+                <p t-if="not documents">No documents available for your access group in this item folder.</p>
+                <table t-if="documents" class="table">
+                    <thead><tr><th>File</th><th>Bytes</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="documents" t-as="doc">
+                            <td t-esc="doc['name']"/>
+                            <td t-esc="doc['size']"/>
+                            <td>
+                                <a t-if="doc['kind'] == 'pdf'" t-att-href="doc['url']" target="_blank" rel="noopener">View PDF</a>
+                                <span t-if="doc['kind'] == 'pdf'"> · </span>
+                                <a t-att-href="doc['url'] + '&amp;download=1'">Download</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </main>
+        </t>
+    </template>
+</odoo>

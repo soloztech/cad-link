@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_cad" model="ir.ui.view">
+        <field name="name">res.company.form.cad.link</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="CAD-link" groups="base.group_system">
+                    <group>
+                        <field name="cad_storage_id" options="{'no_create': True}"/>
+                        <field name="cad_items_directory" placeholder="Items"/>
+                        <field name="cad_unc_root" placeholder="\\fileserver\CAD$"/>
+                        <field name="cad_max_file_mb"/>
+                    </group>
+                    <p>Each product variant uses its internal reference as the folder name. Configure read-only storage credentials and grant CAD-link access on users.</p>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
