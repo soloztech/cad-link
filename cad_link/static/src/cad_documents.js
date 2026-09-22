@@ -11,7 +11,7 @@ export class CadDocuments extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-        this.state = useState({ loading: true, error: "", data: null });
+        this.state = useState({ loading: true, error: "", data: null, preview: null });
         this.sequence = 0;
         // Notebook mounts only its active page: opening another product tab
         // does not read SMB. Discard stale replies when navigating or editing.
@@ -28,6 +28,7 @@ export class CadDocuments extends Component {
 
     async load() {
         const sequence = ++this.sequence;
+        this.state.preview = null;
         this.state.data = null;
         this.state.error = "";
         this.state.loading = !this.needsSave;
@@ -59,6 +60,14 @@ export class CadDocuments extends Component {
             context: record.context,
         });
         await this.action.doAction(action);
+    }
+
+    view3D(doc) {
+        this.state.preview = { name: doc.name, url: doc.viewer_url + "&v=" + Date.now() };
+    }
+
+    close3D() {
+        this.state.preview = null;
     }
 
     async copyFolder() {

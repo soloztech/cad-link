@@ -1,5 +1,32 @@
 # Alpha validation — 2026-09-22
 
+## Embedded GLB preview and export companion (16.0.1.2.0)
+
+- Isolated Odoo upgrade and ORM/HTTP suite: **43 tests passed, zero failures and
+  zero errors**. New coverage includes source-only preview access before storage,
+  product rules, company boundaries, embedded texture bytes, private responses,
+  external-texture rejection, retained downloads, size limits, current-file reads,
+  missing files and duplicate references.
+- **13 standalone Python tests passed**, covering paths and the GLB container/
+  resource profile. Invalid chunks, external/data URIs, compressed/unknown
+  extensions, buffer bounds, image types and duplicate JSON keys are rejected.
+- The local renderer's files match recorded SHA-256 hashes. Its JavaScript and
+  license match the integrity-pinned upstream npm archive for version 4.3.1.
+- A real Chromium browser rendered a synthetic square with a generated four-color
+  PNG texture using the viewer template and actual controller CSP. Texture binding,
+  mouse rotation, wheel zoom, reset and full-screen entry/exit were verified.
+  After the narrowly scoped WebAssembly policy adjustment, the viewer produced no
+  console errors or external HTTP requests. This was a local synthetic browser
+  harness; Odoo authentication was verified separately by the HTTP suite.
+- The optional Inventor export companion has **17 Windows filesystem checks** and
+  compilation against the Inventor 2024 API with a stub for the iLogic host.
+  See its [validation scope](../desktop/inventor/README.md#supported-environment-and-current-validation).
+
+**A real Inventor export and after-save event are not covered by these results.**
+Validate one part and one assembly, native appearance/scale, resolved references,
+regeneration of an existing GLB and atomic replacement on the target SMB server.
+No native CAD file or customer model is included in the public test fixtures.
+
 ## Inline CAD tab and Windows launcher (16.0.1.1.0)
 
 - Updated Odoo ORM/HTTP suite: **33 tests passed, zero failures and zero errors**

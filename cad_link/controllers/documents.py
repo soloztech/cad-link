@@ -81,3 +81,50 @@ class CadDocuments(http.Controller):
             ("X-Frame-Options", "SAMEORIGIN"),
             ("Content-Security-Policy", "sandbox"),
         ])
+
+    @http.route(
+        "/cad-link/product/<int:product_id>/viewer/<string:filename>",
+        type="http", auth="user", methods=["GET"],
+    )
+    def viewer(self, product_id, filename, company_id=None, **kwargs):
+        product = self._product(product_id, company_id)
+        try:
+            product._cad_preview_context(filename)
+        except Exception as error:
+            self._error(error)
+        model_path = "/cad-link/product/%s/preview/%s" % (product.id, quote(filename, safe=""))
+        model_url = model_path + "?" + urlencode({"company_id": int(company_id)})
+        response = request.render("cad_link.viewer", {"filename": filename, "model_url": model_url})
+        # This fixed iframe never loads backend assets or remote services. The
+        # only fetch destination is its authorized, validated GLB endpoint.
+        model_source = request.httprequest.host_url.rstrip("/") + model_path
+        response.headers.update({
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "SAMEORIGIN",
+            "Referrer-Policy": "no-referrer",
+            "Content-Security-Policy": (
+                "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
+                "img-src blob: data:; connect-src %s blob:; worker-src 'none'; "
+                "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+            ) % model_source,
+        })
+        return response
+
+    @http.route(
+        "/cad-link/product/<int:product_id>/preview/<string:filename>",
+        type="http", auth="user", methods=["GET"],
+    )
+    def preview(self, product_id, filename, company_id=None, **kwargs):
+        product = self._product(product_id, company_id)
+        try:
+            data = product._cad_read_preview(filename)
+        except Exception as error:
+            self._error(error)
+        return request.make_response(data, headers=[
+            ("Content-Type", "model/gltf-binary"),
+            ("Content-Disposition", content_disposition(filename).replace("attachment;", "inline;", 1)),
+            ("Cache-Control", "private, no-store"),
+            ("X-Content-Type-Options", "nosniff"),
+            ("Content-Security-Policy", "sandbox"),
+        ])

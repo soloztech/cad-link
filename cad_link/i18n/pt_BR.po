@@ -165,3 +165,76 @@ msgstr "O armazenamento CAD está temporariamente indisponível."
 #: code:addons/cad_link/models/res_company.py:0
 msgid "Configure a Windows share before enabling CAD-link Desktop."
 msgstr "Configure um compartilhamento Windows antes de habilitar o CAD-link Desktop."
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "View 3D"
+msgstr "Visualizar 3D"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "Close 3D"
+msgstr "Fechar 3D"
+
+#. module: cad_link
+#. odoo-javascript
+#: code:addons/cad_link/static/src/cad_documents.xml:0
+msgid "3D preview"
+msgstr "Visualização 3D"
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Reset view"
+msgstr "Restaurar vista"
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Full screen"
+msgstr "Tela cheia"
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Exit full screen"
+msgstr "Sair da tela cheia"
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Loading 3D preview…"
+msgstr "Carregando visualização 3D…"
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Drag to rotate. Scroll or pinch to zoom."
+msgstr "Arraste para girar. Use a roda do mouse ou o gesto de pinça para aproximar."
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "The 3D preview could not be loaded. Check access and export a self-contained GLB 2.0 with embedded PNG/JPEG textures, without compression."
+msgstr "Não foi possível carregar o 3D. Verifique o acesso e exporte um GLB 2.0 com os recursos e as texturas PNG/JPEG no próprio arquivo, sem compressão."
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Full screen is unavailable in this browser."
+msgstr "A tela cheia não está disponível neste navegador."
+
+#. module: cad_link
+#: model_terms:ir.ui.view,arch_db:cad_link.viewer
+msgid "Exported visualization. Use the original CAD document for engineering work."
+msgstr "Visualização exportada. Use o documento CAD original para o trabalho de engenharia."
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "CAD source access is required for 3D previews."
+msgstr "É necessário acesso aos arquivos CAD para visualizar o 3D."
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "3D preview requires a GLB file."
+msgstr "A visualização 3D exige um arquivo GLB."
+
+#. module: cad_link
+#: code:addons/cad_link/models/product.py:0
+msgid "This GLB cannot be previewed. Export a self-contained GLB 2.0 with embedded PNG/JPEG textures and without compression."
+msgstr "Este GLB não pode ser visualizado. Exporte um GLB 2.0 com as texturas PNG/JPEG incluídas no próprio arquivo e sem compressão."

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="viewer" name="CAD 3D preview">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title t-esc="filename"/>
+                <link rel="stylesheet" href="/cad_link/static/src/viewer.css"/>
+                <script type="module" src="/cad_link/static/src/viewer.js"/>
+            </head>
+            <body>
+                <div hidden="hidden">
+                    <span id="cad-message-ready">Drag to rotate. Scroll or pinch to zoom.</span>
+                    <span id="cad-message-error">The 3D preview could not be loaded. Check access and export a self-contained GLB 2.0 with embedded PNG/JPEG textures, without compression.</span>
+                    <span id="cad-message-fullscreen-error">Full screen is unavailable in this browser.</span>
+                    <span id="cad-message-fullscreen-exit">Exit full screen</span>
+                </div>
+                <main id="cad-viewer-panel">
+                    <div class="toolbar">
+                        <strong class="filename" t-esc="filename"/>
+                        <button type="button" id="cad-reset" disabled="disabled">Reset view</button>
+                        <button type="button" id="cad-fullscreen">Full screen</button>
+                    </div>
+                    <model-viewer id="cad-model" t-att-data-model-url="model_url" t-att-alt="filename"
+                                  camera-controls="camera-controls" interaction-prompt="none"
+                                  environment-image="neutral" shadow-intensity="1" exposure="1"
+                                  touch-action="pan-y" loading="eager"/>
+                    <p id="cad-viewer-status" role="status" aria-live="polite">Loading 3D preview…</p>
+                    <p class="notice">Exported visualization. Use the original CAD document for engineering work.</p>
+                </main>
+            </body>
+        </html>
+    </template>
+</odoo>

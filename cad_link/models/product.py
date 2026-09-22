@@ -9,6 +9,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 from ..paths import component, document_kind, item_directory, unc_directory
+from ..glb import validate_glb
 
 _logger = logging.getLogger(__name__)
 
@@ -105,6 +106,11 @@ class ProductProduct(models.Model):
                 self.id, quote(row["name"], safe=""), query,
             )
             row["download_url"] = row["url"] + "&download=1"
+            row["viewer_url"] = False
+            if row["name"].lower().endswith(".glb"):
+                row["viewer_url"] = "/cad-link/product/%s/viewer/%s?%s" % (
+                    self.id, quote(row["name"], safe=""), query,
+                )
             row["open_url"] = False
             row["folder_url"] = False
             if desktop_enabled:
@@ -120,6 +126,28 @@ class ProductProduct(models.Model):
             "documents": rows,
             "select_variant": False,
         }
+
+    def _cad_preview_context(self, filename):
+        company, folder = self._cad_context()
+        if not self.env.user.has_group("cad_link.group_cad_sources"):
+            raise AccessError(_("CAD source access is required for 3D previews."))
+        try:
+            component(filename)
+        except ValueError as error:
+            raise AccessError(_("Invalid CAD filename.")) from error
+        if not filename.lower().endswith(".glb"):
+            raise AccessError(_("3D preview requires a GLB file."))
+        return company, folder
+
+    def _cad_read_preview(self, filename):
+        self._cad_preview_context(filename)
+        data, unused_kind = self._cad_read_document(filename)
+        try:
+            validate_glb(data)
+        except ValueError as error:
+            raise UserError(_("This GLB cannot be previewed. Export a self-contained GLB 2.0 "
+                              "with embedded PNG/JPEG textures and without compression.")) from error
+        return data
 
     def _cad_filesystem(self, company):
         storage = company.cad_storage_id

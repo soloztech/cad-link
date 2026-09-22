@@ -1,0 +1,71 @@
+{
+  "package": "@google/model-viewer",
+  "version": "4.3.1",
+  "license": "Apache-2.0",
+  "source": "https://github.com/google/model-viewer/releases/tag/v4.3.1",
+  "tarball": "https://registry.npmjs.org/@google/model-viewer/-/model-viewer-4.3.1.tgz",
+  "npm_integrity": "sha512-GP+inXhAtY31E8rILVmByA6z8CZZjdlNajddppyI1/j1eIaSQiZcMRaUqTFe7+jv4mzRzwKIOiKBud0apiv+WQ==",
+  "files": {
+    "model-viewer.min.js": {
+      "sha256": "283b0672384614b4847636c306fc93fe4b1fcadc76d668b4e47f0ca76bcf033b",
+      "bytes": 1068903
+    },
+    "LICENSE": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    "THIRD_PARTY_NOTICES.txt": {
+      "sha256": "e17ec0f40b5ac23f068d6bcf8bf915d516bdbe4dd4c39381d36ea081db8633ca",
+      "bytes": 7175
+    }
+  },
+  "package_git_head": "1685fd0480a6d857b9cb2cdeb8175dd22ab0d509",
+  "third_party_lock_source": "https://raw.githubusercontent.com/google/model-viewer/1685fd0480a6d857b9cb2cdeb8175dd22ab0d509/package-lock.json",
+  "third_parties": [
+    {
+      "package": "@lit/reactive-element",
+      "version": "2.1.2",
+      "license": "BSD-3-Clause",
+      "tarball": "https://registry.npmjs.org/@lit/reactive-element/-/reactive-element-2.1.2.tgz",
+      "integrity": "sha512-pbCDiVMnne1lYUIaYNN5wrwQXDtHaYtg7YEFPeW+hws6U47WeFvISGUWekPGKWOP1ygrs0ef0o1VJMk1exos5A==",
+      "license_member": "package/LICENSE",
+      "license_sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "package": "@monogrid/gainmap-js",
+      "version": "3.4.0",
+      "license": "MIT",
+      "tarball": "https://registry.npmjs.org/@monogrid/gainmap-js/-/gainmap-js-3.4.0.tgz",
+      "integrity": "sha512-2Z0FATFHaoYJ8b+Y4y4Hgfn3FRFwuU5zRrk+9dFWp4uGAdHGqVEdP7HP+gLA3X469KXHmfupJaUbKo1b/aDKIg==",
+      "license_member": "package/LICENSE",
+      "license_sha256": "7fb8f722609c6669a9c9a4865e2a86205c7760e7dc7a039b0fb9913c3e62c6cc"
+    },
+    {
+      "package": "lit-element",
+      "version": "4.2.2",
+      "license": "BSD-3-Clause",
+      "tarball": "https://registry.npmjs.org/lit-element/-/lit-element-4.2.2.tgz",
+      "integrity": "sha512-aFKhNToWxoyhkNDmWZwEva2SlQia+jfG0fjIWV//YeTaWrVnOxD89dPKfigCUspXFmjzOEUQpOkejH5Ly6sG0w==",
+      "license_member": "package/LICENSE",
+      "license_sha256": "45d31799d0db956cc3eb5469346abbd9b7025babc5ff29fab10d7095da992ef1"
+    },
+    {
+      "package": "lit-html",
+      "version": "3.3.3",
+      "license": "BSD-3-Clause",
+      "tarball": "https://registry.npmjs.org/lit-html/-/lit-html-3.3.3.tgz",
+      "integrity": "sha512-el8M6jK2o3RXBnrSHX3ZKrsN8zEV63pSExTO1wYJz7QndGYZ8353e2a5PPX+qHe2aGayfnchQmkAojaWAREOIA==",
+      "license_member": "package/LICENSE",
+      "license_sha256": "2b66f9390afde29edfe4314daff93f01fb182e1178053e228120178987e5db75"
+    },
+    {
+      "package": "three",
+      "version": "0.183.2",
+      "license": "MIT",
+      "tarball": "https://registry.npmjs.org/three/-/three-0.183.2.tgz",
+      "integrity": "sha512-di3BsL2FEQ1PA7Hcvn4fyJOlxRRgFYBpMTcyOgkwJIaDOdJMebEFPA+t98EvjuljDx4hNulAGwF6KIjtwI5jgQ==",
+      "license_member": "package/LICENSE",
+      "license_sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    }
+  ]
+}

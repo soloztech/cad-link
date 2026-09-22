@@ -1,0 +1,243 @@
+' SPDX-License-Identifier: LGPL-3.0-or-later
+' External iLogic rule. Requires Inventor with its native glTF translator.
+' Configure and inspect manually before attaching to After Save Document.
+AddReference "System.Xml.dll"
+AddReference "System.Windows.Forms.dll"
+Imports System.IO
+Imports System.Text
+Imports System.Xml
+Imports System.Collections.Generic
+
+Class ThisRule
+    Public Sub Main()
+        Dim temporaryDirectory As String = Nothing
+        Dim sourceLabel As String = "(no document)"
+        Try
+            If RuleArguments.Exists("Inspect") Then
+                If CBool(RuleArguments("Inspect")) Then
+                    InspectTranslators()
+                    Return
+                End If
+            End If
+            Dim configuration As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor", "export.xml")
+            If Not File.Exists(configuration) Then
+                Report("Configure " & configuration & " before exporting.")
+                Return
+            End If
+            Dim settings As New XmlReaderSettings()
+            settings.DtdProcessing = DtdProcessing.Prohibit
+            settings.XmlResolver = Nothing
+            settings.MaxCharactersInDocument = 8192
+            Dim config As New XmlDocument()
+            config.XmlResolver = Nothing
+            Using reader As XmlReader = XmlReader.Create(configuration, settings)
+                config.Load(reader)
+            End Using
+            Dim root As XmlElement = config.DocumentElement
+            If root Is Nothing OrElse root.Name <> "CadLinkInventorExport" Then Throw New InvalidOperationException("Invalid export configuration.")
+            If ConfigValue(root, "Enabled") <> "true" Then
+                Report("Export disabled in local configuration.")
+                Return
+            End If
+            Dim document As Inventor.Document = ThisDoc.Document
+            If document Is Nothing Then Return
+            If document.DocumentType <> Inventor.DocumentTypeEnum.kPartDocumentObject AndAlso document.DocumentType <> Inventor.DocumentTypeEnum.kAssemblyDocumentObject Then Return
+            If String.IsNullOrWhiteSpace(document.FullFileName) Then Return
+            sourceLabel = Path.GetFileName(document.FullFileName)
+            Dim source As String = CadLinkExportFiles.EligibleSource(ConfigValue(root, "ItemsRoot"), document.FullFileName)
+            If source Is Nothing Then Return
+            Dim output As String = Path.ChangeExtension(source, ".glb")
+            Dim limit As Long = Long.Parse(ConfigValue(root, "MaxFileBytes"), Globalization.CultureInfo.InvariantCulture)
+            If limit < 1024 OrElse limit > 268435456 Then Throw New InvalidOperationException("MaxFileBytes must be between 1024 and 268435456.")
+
+            ' Exclusive SMB handle also prevents a reentrant event or another PC
+            ' publishing the same item concurrently. It is removed on close.
+            Using exportLock As New FileStream(Path.Combine(Path.GetDirectoryName(source), ".cad-link-export.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose)
+                Dim before As Dictionary(Of String, String) = Snapshot(document)
+                Dim translator As Inventor.TranslatorAddIn = SelectedTranslator(ConfigValue(root, "TranslatorClassId"))
+                If Not translator.Activated Then translator.Activate()
+                Dim context As Inventor.TranslationContext = ThisApplication.TransientObjects.CreateTranslationContext()
+                context.Type = Inventor.IOMechanismEnum.kFileBrowseIOMechanism
+                Dim options As Inventor.NameValueMap = ThisApplication.TransientObjects.CreateNameValueMap()
+                ' Populates native defaults when available. No invented GLB keys.
+                Dim hasOptions As Boolean = translator.HasSaveCopyAsOptions(document, context, options)
+                temporaryDirectory = Path.Combine(Path.GetDirectoryName(source), ".cad-link-export-" & Guid.NewGuid().ToString("N"))
+                Directory.CreateDirectory(temporaryDirectory)
+                Dim temporaryGlb As String = Path.Combine(temporaryDirectory, Path.GetFileName(output))
+                Dim medium As Inventor.DataMedium = ThisApplication.TransientObjects.CreateDataMedium()
+                medium.FileName = temporaryGlb
+                translator.SaveCopyAs(document, context, options, medium)
+                CadLinkExportFiles.ValidateGlb(temporaryGlb, limit)
+                Dim after As Dictionary(Of String, String) = Snapshot(document)
+                If Not CadLinkExportFiles.SameSnapshot(before, after) Then Throw New InvalidOperationException("A source changed during export; save the assembly and run again.")
+                CadLinkExportFiles.Publish(temporaryGlb, output, limit)
+                Report(sourceLabel & ": GLB exported.")
+            End Using
+        Catch ex As Exception
+            ' An export error must never trigger a second save or cancel the
+            ' original save. Preserve the previous GLB and report locally.
+            Report(sourceLabel & ": GLB not updated. " & ex.Message)
+        Finally
+            If temporaryDirectory IsNot Nothing AndAlso Directory.Exists(temporaryDirectory) Then
+                Try
+                    ' Only our random staging directory, never the item folder.
+                    Directory.Delete(temporaryDirectory, True)
+                Catch
+                    Report("Temporary export files could not be removed: " & temporaryDirectory)
+                End Try
+            End If
+        End Try
+    End Sub
+
+    Private Function ConfigValue(ByVal root As XmlElement, ByVal name As String) As String
+        Dim node As XmlNode = root.SelectSingleNode(name)
+        If node Is Nothing Then Throw New InvalidOperationException("Missing configuration: " & name)
+        Return node.InnerText.Trim()
+    End Function
+
+    Private Function SelectedTranslator(ByVal classId As String) As Inventor.TranslatorAddIn
+        If String.IsNullOrWhiteSpace(classId) Then
+            Dim selected As Inventor.TranslatorAddIn = Nothing
+            For Each addin As Inventor.ApplicationAddIn In ThisApplication.ApplicationAddIns
+                Dim candidate As Inventor.TranslatorAddIn = TryCast(addin, Inventor.TranslatorAddIn)
+                If candidate IsNot Nothing AndAlso candidate.SupportsSaveCopyAs AndAlso IsGltf(candidate) Then
+                    If selected IsNot Nothing Then Throw New InvalidOperationException("Multiple glTF export translators are installed; inspect and set TranslatorClassId explicitly.")
+                    selected = candidate
+                End If
+            Next
+            If selected Is Nothing Then Throw New InvalidOperationException("No native glTF export translator is installed.")
+            Return selected
+        End If
+        Dim parsed As Guid
+        If Not Guid.TryParse(classId, parsed) Then Throw New InvalidOperationException("TranslatorClassId must be empty or a valid inspected GUID.")
+        Dim translator As Inventor.TranslatorAddIn = TryCast(ThisApplication.ApplicationAddIns.ItemById(parsed.ToString("B")), Inventor.TranslatorAddIn)
+        If translator Is Nothing OrElse Not translator.SupportsSaveCopyAs OrElse Not IsGltf(translator) Then Throw New InvalidOperationException("Configured add-in is not an available glTF export translator.")
+        Return translator
+    End Function
+
+    Private Function IsGltf(ByVal translator As Inventor.TranslatorAddIn) As Boolean
+        For Each extension As String In translator.FileExtensions.Split(";"c)
+            Dim normalized As String = extension.Trim().TrimStart("*"c, "."c)
+            If normalized.Equals("glb", StringComparison.OrdinalIgnoreCase) OrElse normalized.Equals("gltf", StringComparison.OrdinalIgnoreCase) Then Return True
+        Next
+        Return False
+    End Function
+
+    Private Sub InspectTranslators()
+        Dim lines As New StringBuilder("CAD-link: export disabled. Installed glTF export translators:" & Environment.NewLine)
+        Dim count As Integer = 0
+        For Each addin As Inventor.ApplicationAddIn In ThisApplication.ApplicationAddIns
+            Dim translator As Inventor.TranslatorAddIn = TryCast(addin, Inventor.TranslatorAddIn)
+            If translator IsNot Nothing Then
+                Try
+                    If translator.SupportsSaveCopyAs AndAlso IsGltf(translator) Then
+                        count += 1
+                        lines.AppendLine(translator.DisplayName & " | " & translator.ClassIdString & " | " & translator.FileExtensions)
+                    End If
+                Catch
+                    ' An unrelated unavailable translator is not an export target.
+                End Try
+            End If
+        Next
+        If count = 0 Then lines.AppendLine("No native glTF export translator was reported. Check the Inventor version and installed translators.")
+        Report(lines.ToString())
+        System.Windows.Forms.MessageBox.Show(lines.ToString(), "CAD-link: translator inspection")
+    End Sub
+
+    Private Function Snapshot(ByVal document As Inventor.Document) As Dictionary(Of String, String)
+        Dim result As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+        AddSnapshot(document, result)
+        For Each dependency As Inventor.Document In document.AllReferencedDocuments
+            AddSnapshot(dependency, result)
+        Next
+        Return result
+    End Function
+
+    Private Sub AddSnapshot(ByVal document As Inventor.Document, ByVal result As Dictionary(Of String, String))
+        If document.Dirty OrElse document.RequiresUpdate Then Throw New InvalidOperationException("Save and update the document and its components before exporting.")
+        If String.IsNullOrWhiteSpace(document.FullFileName) OrElse Not File.Exists(document.FullFileName) Then Throw New InvalidOperationException("An unsaved or unresolved document prevents export.")
+        For Each descriptor As Inventor.DocumentDescriptor In document.ReferencedDocumentDescriptors
+            If descriptor.ReferenceMissing AndAlso Not descriptor.ReferenceSuppressed Then Throw New InvalidOperationException("An unresolved component prevents export.")
+        Next
+        result(Path.GetFullPath(document.FullFileName)) = CadLinkExportFiles.Fingerprint(document.FullFileName)
+    End Sub
+
+    Private Sub Report(ByVal message As String)
+        Try
+            ThisApplication.StatusBarText = "CAD-link: " & message.Replace(Environment.NewLine, " ")
+            Dim folder As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CAD-link", "Inventor")
+            Directory.CreateDirectory(folder)
+            Dim filename As String = Path.Combine(folder, "export.log")
+            If File.Exists(filename) AndAlso New FileInfo(filename).Length > 1048576 Then File.Delete(filename)
+            File.AppendAllText(filename, DateTime.UtcNow.ToString("o", Globalization.CultureInfo.InvariantCulture) & " " & message & Environment.NewLine, Encoding.UTF8)
+        Catch
+            ' Logging must not interfere with Inventor saving the native file.
+        End Try
+    End Sub
+End Class
+
+' FILESYSTEM_HELPER_START: compiled independently by the synthetic Windows tests.
+Public Class CadLinkExportFiles
+    Public Shared Function EligibleSource(ByVal itemsRoot As String, ByVal filename As String) As String
+        If String.IsNullOrWhiteSpace(itemsRoot) OrElse Not Path.IsPathRooted(itemsRoot) Then Throw New InvalidOperationException("Configure an absolute ItemsRoot first.")
+        If itemsRoot.StartsWith("\\?\") OrElse itemsRoot.StartsWith("\\.\") Then Throw New InvalidOperationException("Device paths are not supported.")
+        Dim root As String = Path.GetFullPath(itemsRoot).TrimEnd(Path.DirectorySeparatorChar)
+        Dim source As String = Path.GetFullPath(filename)
+        Dim extension As String = Path.GetExtension(source).ToLowerInvariant()
+        If extension <> ".ipt" AndAlso extension <> ".iam" Then Return Nothing
+        Dim folder As String = Path.GetDirectoryName(source)
+        If Not String.Equals(Path.GetDirectoryName(folder), root, StringComparison.OrdinalIgnoreCase) Then Return Nothing
+        If Not String.Equals(Path.GetFileName(folder), Path.GetFileNameWithoutExtension(source), StringComparison.OrdinalIgnoreCase) Then Return Nothing
+        If Not File.Exists(source) Then Return Nothing
+        RejectReparsePoints(source)
+        Dim otherExtension As String = If(extension = ".ipt", ".iam", ".ipt")
+        If File.Exists(Path.ChangeExtension(source, otherExtension)) Then Throw New InvalidOperationException("Both IPT and IAM share this basename; choose separate item codes before exporting.")
+        Return source
+    End Function
+
+    Public Shared Sub RejectReparsePoints(ByVal filename As String)
+        Dim current As String = Path.GetFullPath(filename)
+        While Not String.IsNullOrEmpty(current)
+            If (File.GetAttributes(current) And FileAttributes.ReparsePoint) <> 0 Then Throw New InvalidOperationException("Reparse points are not supported in export paths.")
+            current = Path.GetDirectoryName(current)
+        End While
+    End Sub
+
+    Public Shared Function Fingerprint(ByVal filename As String) As String
+        Dim info As New FileInfo(filename)
+        Return info.Length.ToString(Globalization.CultureInfo.InvariantCulture) & ":" & info.LastWriteTimeUtc.Ticks.ToString(Globalization.CultureInfo.InvariantCulture)
+    End Function
+
+    Public Shared Function SameSnapshot(ByVal before As Dictionary(Of String, String), ByVal after As Dictionary(Of String, String)) As Boolean
+        If before.Count <> after.Count Then Return False
+        For Each pair As KeyValuePair(Of String, String) In before
+            If Not after.ContainsKey(pair.Key) OrElse after(pair.Key) <> pair.Value Then Return False
+        Next
+        Return True
+    End Function
+
+    Public Shared Sub ValidateGlb(ByVal filename As String, ByVal maximum As Long)
+        Using stream As New FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read)
+            If stream.Length < 24 OrElse stream.Length > maximum Then Throw New InvalidDataException("Export is empty or exceeds the configured GLB size limit.")
+            Using reader As New BinaryReader(stream)
+                If reader.ReadUInt32() <> &H46546C67UI OrElse reader.ReadUInt32() <> 2UI OrElse CLng(reader.ReadUInt32()) <> stream.Length Then Throw New InvalidDataException("Translator did not produce a complete GLB 2.0 file.")
+                Dim jsonLength As Long = CLng(reader.ReadUInt32())
+                If reader.ReadUInt32() <> &H4E4F534AUI OrElse jsonLength < 4 OrElse jsonLength Mod 4 <> 0 OrElse jsonLength > stream.Length - 20 Then Throw New InvalidDataException("Invalid GLB JSON chunk.")
+            End Using
+        End Using
+    End Sub
+
+    Public Shared Sub Publish(ByVal temporary As String, ByVal destination As String, ByVal maximum As Long)
+        If Not Path.GetExtension(destination).Equals(".glb", StringComparison.OrdinalIgnoreCase) Then Throw New InvalidOperationException("Only derived GLB output may be replaced.")
+        ValidateGlb(temporary, maximum)
+        RejectReparsePoints(temporary)
+        If File.Exists(destination) Then
+            RejectReparsePoints(destination)
+            ' No delete/copy fallback: if atomic replacement is unsupported or a
+            ' viewer holds an incompatible lock, the last valid export remains.
+            File.Replace(temporary, destination, Nothing)
+        Else
+            File.Move(temporary, destination)
+        End If
+    End Sub
+End Class

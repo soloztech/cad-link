@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CadLinkInventorExport>
+  <!-- Copy to %LOCALAPPDATA%\CAD-link\Inventor\export.xml. -->
+  <!-- Run CadLink-InspectGLB before enabling export. -->
+  <Enabled>false</Enabled>
+  <ItemsRoot></ItemsRoot>
+  <!-- Empty = require exactly one installed glTF export translator. -->
+  <TranslatorClassId></TranslatorClassId>
+  <MaxFileBytes>52428800</MaxFileBytes>
+</CadLinkInventorExport>

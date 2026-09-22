@@ -22,7 +22,11 @@ jobs:
       - name: Portable path and document access tests
         run: python -m unittest discover -s tests -v
       - name: JavaScript syntax
-        run: node --input-type=module --check < cad_link/static/src/cad_documents.js
+        run: |
+          node --input-type=module --check < cad_link/static/src/cad_documents.js
+          node --input-type=module --check < cad_link/static/src/viewer.js
+      - name: Bundled renderer integrity
+        run: python tools/vendor_model_viewer.py
 
   windows-launcher:
     runs-on: windows-latest
@@ -34,3 +38,9 @@ jobs:
       - name: Windows executable build and rejection smoke
         shell: powershell
         run: .\desktop\windows\tests\Test-LauncherBuild.ps1
+      - name: Inventor export filesystem guards
+        shell: powershell
+        run: .\desktop\inventor\tests\Test-ExportFiles.ps1
+      - name: Inventor local skill guards
+        shell: powershell
+        run: .\desktop\inventor\skill\cad-link-export-glb\scripts\Test-CadLinkGlbHelper.ps1

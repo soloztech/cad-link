@@ -1,5 +1,11 @@
 # Configuration
 
+For local Codex-assisted export on an Inventor workstation, install the optional
+[cad-link-export-glb skill](../desktop/inventor/skill/cad-link-export-glb/SKILL.md)
+under the engineering workspace's `.agents/skills/`, with the companion in
+`tools/cad-link/inventor`. The helper inspects by default and requires an explicit
+export command. This does not register after-save events.
+
 ## Storage and folders
 
 Use an existing OCA `fs.storage` record, protocol `smb` or `file`. This alpha
@@ -67,10 +73,51 @@ dependencies or create a local download. Opening a shared original is subject
 to the CAD application's file locks and existing references. Download remains
 a separate action that copies one file.
 
-The first alpha lists direct children only. Put exported PDFs next to the source
+The first alpha lists direct children only. Put exported PDFs and GLBs next to the source
 files. Nested exports, revisions and alternate path templates are future work.
 No folder is created automatically. A missing folder and an empty folder are
 different states. Listings are capped at 500 entries.
+
+## 3D preview
+
+Place a GLB export beside its native document, for example
+`Items/P-2200/P-2200.ipt` and `Items/P-2200/P-2200.glb`. Open the CAD tab, use
+**Refresh**, then **View 3D** on the GLB row. The preview opens below the list
+with rotation, zoom, reset and full-screen controls. Closing the preview or
+refreshing the list releases the iframe; opening it again reads the current GLB.
+Existing **Download**, PDF and network actions remain available.
+
+Requirements:
+
+- **PDF and CAD sources** access plus normal product/company access. The PDF-only
+  group cannot list, download or preview a GLB through Odoo.
+- A self-contained **GLB 2.0**, with one embedded binary buffer. Images, when
+  present, must be PNG/JPEG stored in buffer views inside that same GLB.
+- No resource URIs, including data URIs, external images or buffers. Draco,
+  Meshopt, KTX2/Basis and unknown extensions are rejected by the preview profile.
+  Standard uncompressed geometry and the supported material extensions are
+  accepted; `cad_link/glb.py` defines the profile. A rejected preview can still
+  be downloaded by an authorized source user.
+- A file within the company's read limit: **50 MiB by default**, configurable
+  from 1 to 256 MiB. The preview additionally limits the JSON chunk to 4 MiB.
+- A browser with WebGL. Inventor and CAD-link Desktop are not needed to view 3D.
+
+The locally bundled renderer uses a generated neutral lighting environment and
+loads no external models, textures or decoder services. A material can only show
+textures actually emitted by the exporter. GLB is a derived visualization; this
+release provides no engineering measurement, sectioning, BOM or parametric editing.
+
+For automated exports, configure the optional
+[Inventor companion](../desktop/inventor/README.md) on the engineer's workstation.
+It includes an inspection rule, an export rule and a per-user configuration
+example. Validate a manual part/assembly export first, then bind the export rule
+to **After Save Document** in the global Parts and Assemblies event tabs. It does
+not register events automatically or modify the IPJ. The Odoo server remains a
+reader; the export rule writes under the Windows user's existing rights.
+
+Saving a part refreshes its GLB only. To publish an updated parent assembly, open,
+update and save that assembly too. CAD-link does not track dependency freshness;
+a GLB timestamp alone does not establish that all assembly components are current.
 
 ## Access
 
@@ -92,11 +139,13 @@ each Windows user. Browser PDF viewing is not a mechanism for preventing downloa
 
 ## Operational limits
 
-- Original CAD files require a compatible CAD application. Browser PDF preview
-  requires an existing, valid PDF; CAD-link does not generate exports.
+- Original CAD files require a compatible CAD application. Browser PDF/3D preview
+  requires an existing valid PDF/GLB. The Odoo addon does not generate exports;
+  the optional Inventor companion runs on the CAD workstation.
 - Downloads contain a single file. Assemblies may require other referenced files;
   this release does not package dependencies or provide checkout/locking.
-- No writes, markers, attachment copies, background crawl or approval workflow.
+- The Odoo addon performs no writes, markers, attachment copies, background crawl
+  or approval workflow. The optional exporter publishes GLBs in the item folder.
 - Files are buffered in memory up to the configured size limit; size the limit
   for worker memory and concurrency. Byte-range streaming is not implemented.
 - Engineering authors must be trusted. Symbolic links/reparse points are unsupported;

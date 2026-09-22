@@ -2,7 +2,7 @@
 {
     "name": "CAD-link",
     "summary": "Read shared CAD documents from Odoo products",
-    "version": "16.0.1.1.0",
+    "version": "16.0.1.2.0",
     "development_status": "Alpha",
     "category": "Manufacturing",
     "author": "CAD-link contributors",
@@ -14,6 +14,7 @@
         "views/company_views.xml",
         "views/product_views.xml",
         "views/document_templates.xml",
+        "views/viewer_templates.xml",
     ],
     "assets": {
         "web.assets_backend": [
